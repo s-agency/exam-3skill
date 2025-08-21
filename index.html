@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3Skill Exam Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .gradient-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .camera-container {
+            width: 100%;
+            height: 300px;
+            background-color: #f1f5f9;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .question-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .option-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .option-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+        
+        .option-label:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .option-input {
+            margin-right: 0.75rem;
+        }
+        
+        .submit-btn {
+            margin-top: 1rem;
+            width: 100%;
+        }
+        
+        .fullscreen-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f59e0b;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4f46e5;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-card {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center py-10 px-4">
+    <!-- Header -->
+    <header class="w-full max-w-4xl px-4 flex justify-between items-center mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center">
+            <i class="fas fa-graduation-cap mr-3 text-indigo-600"></i>
+            <span>3Skill Exam Portal</span>
+        </h1>
+    </header>
+
+    <!-- Fullscreen Warning -->
+    <div class="fullscreen-warning" id="fullscreenWarning">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        Please return to fullscreen mode immediately or your exam will be submitted automatically.
+    </div>
+
+    <!-- Timer -->
+    <div class="timer hidden" id="examTimer">30:00</div>
+
+    <!-- Student Registration -->
+    <div id="registrationBox" class="card p-6 sm:p-8 w-full max-w-md">
+        <div class="text-center mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Exam Registration</h2>
+            <p class="text-gray-600">Please enter your details to start the exam</p>
+        </div>
+        
+        <div class="space-y-4">
+            <div>
+                <label for="studentName" class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <input id="studentName" type="text" placeholder="John Doe"
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+            </div>
+            
+            <div>
+                <label for="studentEmail" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <input id="studentEmail" type="email" placeholder="john@example.com"
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+            </div>
+            
+            <div>
+                <label for="studentDomain" class="block text-sm font-medium text-gray-700 mb-2">Domain</label>
+                <select id="studentDomain" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                    <option value="">Select your domain</option>
+                    <option value="Web Development">Web Development</option>
+                    <option value="AIML">Artificial Intelligence & Machine Learning</option>
+                    <option value="Data Science">Data Science</option>
+                    <option value="Digital Marketing">Digital Marketing</option>
+                </select>
+            </div>
+        </div>
+        
+        <button onclick="startExamProcess()" class="gradient-btn text-white px-6 py-3 rounded-lg w-full font-medium mt-6">
+            Start Exam
+        </button>
+        
+        <div class="mt-4 text-center text-sm text-gray-500">
+            <p>By starting the exam, you agree to our <a href="#" class="text-indigo-600 hover:underline">Terms & Conditions</a></p>
+        </div>
+    </div>
+
+    <!-- Exam Instructions -->
+    <div id="instructionsBox" class="card p-6 sm:p-8 w-full max-w-2xl hidden">
+        <div class="text-center mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Exam Instructions</h2>
+            <p class="text-gray-600">Please read the instructions carefully before starting</p>
+        </div>
+        
+        <div class="bg-blue-50 p-4 rounded-lg mb-6">
+            <h3 class="font-semibold text-blue-800 mb-2">Important Guidelines:</h3>
+            <ul class="list-disc list-inside text-blue-700 space-y-2">
+                <li>This exam has <span id="questionCount">20</span> questions with a time limit of <span id="timeLimit">30</span> minutes</li>
+                <li>You must enable your camera for proctoring during the entire exam</li>
+                <li>The exam must be taken in fullscreen mode</li>
+                <li>If you exit fullscreen mode, you'll get a warning and the exam will auto-submit if not returned</li>
+                <li>Do not refresh the page or navigate away during the exam</li>
+                <li>Your answers are saved automatically as you progress</li>
+            </ul>
+        </div>
+        
+        <div class="flex justify-center gap-4">
+            <button onclick="showRegistration()" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                Back
+            </button>
+            <button onclick="initExam()" class="gradient-btn text-white px-6 py-2 rounded-lg font-medium">
+                I Understand, Start Exam
+            </button>
+        </div>
+    </div>
+
+    <!-- Exam Interface -->
+    <div id="examInterface" class="hidden w-full max-w-4xl">
+        <div class="card p-6 mb-6">
+            <div class="camera-container" id="examCameraContainer">
+                <div class="camera-placeholder">
+                    <i class="fas fa-camera fa-3x mb-2 text-gray-400"></i>
+                    <p>Camera feed will appear here</p>
+                </div>
+                <video id="examCameraFeed" class="hidden camera-feed" autoplay playsinline></video>
+            </div>
+            
+            <div class="mb-4 flex justify-between items-center">
+                <div>
+                    <span class="font-medium" id="currentQuestionIndicator">Question 1 of 20</span>
+                </div>
+                <div>
+                    <span class="font-medium" id="domainIndicator">Domain: Web Development</span>
+                </div>
+            </div>
+            
+            <div class="question-container">
+                <h3 class="question-text" id="questionText">Loading question...</h3>
+                <div class="options-container" id="optionsContainer">
+                    <!-- Options will be populated here -->
+                </div>
+            </div>
+            
+            <div class="flex justify-between mt-8">
+                <button onclick="previousQuestion()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition" id="prevButton">
+                    <i class="fas fa-arrow-left mr-2"></i> Previous
+                </button>
+                <button onclick="nextQuestion()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition" id="nextButton">
+                    Next <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <button onclick="submitExam()" class="gradient-btn text-white px-8 py-3 rounded-lg font-medium">
+                Submit Exam
+            </button>
+        </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="resultsScreen" class="card result-card w-full max-w-md hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Exam Results</h2>
+        
+        <div class="score-circle">
+            <span id="scoreValue">0</span>
+        </div>
+        
+        <h3 class="text-xl font-semibold text-gray-700 mb-2" id="resultText">Congratulations!</h3>
+        <p class="text-gray-600 mb-4">You scored <span id="correctAnswers">0</span> out of <span id="totalQuestions">0</span> questions</p>
+        
+        <div class="bg-gray-100 p-4 rounded-lg mb-6">
+            <h4 class="font-medium text-gray-700 mb-2">Student Details:</h4>
+            <p class="text-gray-600" id="studentDetails">Name: John Doe | Email: john@example.com | Domain: Web Development</p>
+        </div>
+        
+        <button onclick="location.reload()" class="gradient-btn text-white px-6 py-3 rounded-lg font-medium">
+            Take Another Exam
+        </button>
+    </div>
+
+    <script>
+        // Google Apps Script URL (replace with your own after deployment)
+        const webAppURL = "https://script.google.com/macros/s/AKfycbxkJs4aNnX6xW5jwtvkxIro4ubycsXlFwcVKR8jFzUrIOHX_DklyPuLTTPuU61cwM7d/exec";
+        
+        // Exam variables
+        let examQuestions = [];
+        let studentAnswers = [];
+        let currentQuestion = 0;
+        let examTimer;
+        let timeLeft = 30 * 60; // 30 minutes in seconds
+        let examStream = null;
+        let studentData = {};
+        
+        // Sample questions
+        const questionBank = {
+            "Web Development": [
+                {
+                    question: "What does HTML stand for?",
+                    options: [
+                        "Hyper Text Markup Language",
+                        "High Tech Modern Language",
+                        "Hyper Transfer Markup Language",
+                        "Home Tool Markup Language"
+                    ],
+                    correctAnswer: 0
+                },
+                {
+                    question: "Which of these is a JavaScript framework?",
+                    options: [
+                        "Django",
+                        "Laravel",
+                        "React",
+                        "Ruby on Rails"
+                    ],
+                    correctAnswer: 2
+                },
+                {
+                    question: "What does CSS stand for?",
+                    options: [
+                        "Computer Style Sheets",
+                        "Creative Style System",
+                        "Cascading Style Sheets",
+                        "Colorful Style Sheets"
+                    ],
+                    correctAnswer: 2
+                },
+                {
+                    question: "Which HTML tag is used for creating a hyperlink?",
+                    options: [
+                        "<link>",
+                        "<a>",
+                        "<href>",
+                        "<hyperlink>"
+                    ],
+                    correctAnswer: 1
+                },
+                {
+                    question: "Which property is used to change the background color in CSS?",
+                    options: [
+                        "color",
+                        "bgcolor",
+                        "background-color",
+                        "background"
+                    ],
+                    correctAnswer: 2
+                }
+            ],
+            "AIML": [
+                {
+                    question: "What is the primary goal of machine learning?",
+                    options: [
+                        "To create algorithms that can learn from data",
+                        "To build robots that can think like humans",
+                        "To replace human intelligence entirely",
+                        "To code explicit instructions for every scenario"
+                    ],
+                    correctAnswer: 0
+                },
+                {
+                    question: "Which of these is a type of machine learning?",
+                    options: [
+                        "Supervised Learning",
+                        "Reverse Learning",
+                        "Static Learning",
+                        "Fixed Learning"
+                    ],
+                    correctAnswer: 0
+                },
+                {
+                    question: "What does AI stand for?",
+                    options: [
+                        "Automated Intelligence",
+                        "Artificial Intelligence",
+                        "Advanced Internet",
+                        "Algorithmic Inference"
+                    ],
+                    correctAnswer: 1
+                }
+            ],
+            "Data Science": [
+                {
+                    question: "What is the first step in the data science process?",
+                    options: [
+                        "Model Building",
+                        "Data Collection",
+                        "Data Visualization",
+                        "Deployment"
+                    ],
+                    correctAnswer: 1
+                },
+                {
+                    question: "Which library is commonly used for data manipulation in Python?",
+                    options: [
+                        "TensorFlow",
+                        "Pandas",
+                        "Scikit-learn",
+                        "Matplotlib"
+                    ],
+                    correctAnswer: 1
+                },
+                {
+                    question: "What is the purpose of data cleaning?",
+                    options: [
+                        "To make data more visually appealing",
+                        "To remove errors and inconsistencies from data",
+                        "To encrypt sensitive data",
+                        "To compress data for storage"
+                    ],
+                    correctAnswer: 1
+                }
+            ],
+            "Digital Marketing": [
+                {
+                    question: "What does SEO stand for?",
+                    options: [
+                        "Search Engine Optimization",
+                        "Social Engagement Optimization",
+                        "Site Enhancement Operations",
+                        "Search Experience Organization"
+                    ],
+                    correctAnswer: 0
+                },
+                {
+                    question: "Which metric measures the percentage of visitors who take a desired action?",
+                    options: [
+                        "Bounce Rate",
+                        "Conversion Rate",
+                        "Click-Through Rate",
+                        "Impression Rate"
+                    ],
+                    correctAnswer: 1
+                },
+                {
+                    question: "What is the purpose of a call-to-action (CTA) in marketing?",
+                    options: [
+                        "To provide contact information",
+                        "To encourage immediate response from the audience",
+                        "To display pricing information",
+                        "To explain product features"
+                    ],
+                    correctAnswer: 1
+                }
+            ]
+        };
+        
+        function startExamProcess() {
+            const name = document.getElementById("studentName").value.trim();
+            const email = document.getElementById("studentEmail").value.trim();
+            const domain = document.getElementById("studentDomain").value;
+            
+            if (!name || !email || !domain) {
+                alert("Please fill in all fields");
+                return;
+            }
+            
+            // Store student data
+            studentData = { name, email, domain };
+            
+            // Show instructions
+            document.getElementById("registrationBox").classList.add("hidden");
+            document.getElementById("instructionsBox").classList.remove("hidden");
+            
+            // Set domain-specific details
+            document.getElementById("domainIndicator").textContent = `Domain: ${domain}`;
+            
+            // Load questions for the selected domain
+            examQuestions = questionBank[domain] || [];
+            document.getElementById("questionCount").textContent = examQuestions.length;
+            
+            // Initialize empty answers array
+            studentAnswers = new Array(examQuestions.length).fill(null);
+        }
+        
+        function showRegistration() {
+            document.getElementById("instructionsBox").classList.add("hidden");
+            document.getElementById("registrationBox").classList.remove("hidden");
+        }
+        
+        async function initExam() {
+            try {
+                // Request camera access
+                examStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true,
+                    audio: false
+                });
+                
+                document.getElementById("examCameraFeed").srcObject = examStream;
+                document.getElementById("examCameraFeed").classList.remove("hidden");
+                document.querySelector("#examCameraContainer .camera-placeholder").classList.add("hidden");
+                
+                // Enter fullscreen mode
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.error('Error attempting to enable fullscreen:', err);
+                    });
+                }
+                
+                // Set up fullscreen change listener
+                document.addEventListener('fullscreenchange', handleFullscreenChange);
+                
+                // Hide instructions and show exam
+                document.getElementById("instructionsBox").classList.add("hidden");
+                document.getElementById("examInterface").classList.remove("hidden");
+                
+                // Start the timer
+                startTimer();
+                
+                // Load first question
+                showQuestion(0);
+                
+            } catch (err) {
+                alert("Could not access camera. Please enable camera permissions to continue with the exam.");
+                console.error("Camera access error:", err);
+            }
+        }
+        
+        function handleFullscreenChange() {
+            if (!document.fullscreenElement) {
+                // Show warning if not in fullscreen
+                document.getElementById('fullscreenWarning').style.display = 'block';
+                
+                // Auto-submit after 10 seconds if not returned to fullscreen
+                setTimeout(() => {
+                    if (!document.fullscreenElement) {
+                        submitExam();
+                    }
+                }, 10000);
+            } else {
+                // Hide warning if returned to fullscreen
+                document.getElementById('fullscreenWarning').style.display = 'none';
+            }
+        }
+        
+        function startTimer() {
+            // Show timer
+            document.getElementById("examTimer").classList.remove("hidden");
+            updateTimerDisplay();
+            
+            // Start countdown
+            examTimer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(examTimer);
+                    submitExam();
+                }
+            }, 1000);
+        }
+        
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById("examTimer").textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Change color when time is running out
+            if (timeLeft < 300) { // 5 minutes
+                document.getElementById("examTimer").style.background = "#ef4444";
+            }
+        }
+        
+        function showQuestion(index) {
+            currentQuestion = index;
+            const question = examQuestions[index];
+            
+            // Update question indicator
+            document.getElementById("currentQuestionIndicator").textContent = 
+                `Question ${index + 1} of ${examQuestions.length}`;
+            
+            // Update question text
+            document.getElementById("questionText").textContent = question.question;
+            
+            // Update options
+            const optionsContainer = document.getElementById("optionsContainer");
+            optionsContainer.innerHTML = "";
+            
+            question.options.forEach((option, i) => {
+                const optionElement = document.createElement("div");
+                optionElement.className = "option-item";
+                optionElement.innerHTML = `
+                    <label class="option-label">
+                        <input type="radio" name="examQuestion" value="${i}" class="option-input" 
+                            ${studentAnswers[index] === i ? "checked" : ""}>
+                        ${option}
+                    </label>
+                `;
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // Add event listeners to options
+            const radioInputs = optionsContainer.querySelectorAll('input[type="radio"]');
+            radioInputs.forEach(input => {
+                input.addEventListener('change', (e) => {
+                    studentAnswers[currentQuestion] = parseInt(e.target.value);
+                });
+            });
+            
+            // Update navigation buttons
+            document.getElementById("prevButton").disabled = (index === 0);
+            document.getElementById("nextButton").disabled = (index === examQuestions.length - 1);
+        }
+        
+        function nextQuestion() {
+            if (currentQuestion < examQuestions.length - 1) {
+                showQuestion(currentQuestion + 1);
+            }
+        }
+        
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                showQuestion(currentQuestion - 1);
+            }
+        }
+        
+        async function submitExam() {
+            // Clear timer
+            clearInterval(examTimer);
+            
+            // Calculate score
+            let correctCount = 0;
+            examQuestions.forEach((question, index) => {
+                if (studentAnswers[index] === question.correctAnswer) {
+                    correctCount++;
+                }
+            });
+            
+            const score = Math.round((correctCount / examQuestions.length) * 100);
+            
+            // Stop camera
+            if (examStream) {
+                examStream.getTracks().forEach(track => track.stop());
+            }
+            
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+            
+            // Remove fullscreen listener
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            
+            // Prepare data for Google Sheets
+            const submissionData = {
+                name: studentData.name,
+                email: studentData.email,
+                domain: studentData.domain,
+                score: score,
+                correctAnswers: correctCount,
+                totalQuestions: examQuestions.length
+            };
+            
+            // Send data to Google Sheets
+            try {
+                const response = await fetch(webAppURL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(submissionData)
+                });
+                
+                const result = await response.json();
+                console.log("Submission result:", result);
+                
+            } catch (error) {
+                console.error("Error submitting results:", error);
+            }
+            
+            // Hide exam interface and show results
+            document.getElementById("examInterface").classList.add("hidden");
+            document.getElementById("examTimer").classList.add("hidden");
+            document.getElementById("resultsScreen").classList.remove("hidden");
+            
+            // Display results
+            document.getElementById("scoreValue").textContent = `${score}%`;
+            document.getElementById("correctAnswers").textContent = correctCount;
+            document.getElementById("totalQuestions").textContent = examQuestions.length;
+            document.getElementById("studentDetails").textContent = 
+                `Name: ${studentData.name} | Email: ${studentData.email} | Domain: ${studentData.domain}`;
+            
+            // Set result text based on score
+            if (score >= 80) {
+                document.getElementById("resultText").textContent = "Excellent Work!";
+            } else if (score >= 60) {
+                document.getElementById("resultText").textContent = "Good Job!";
+            } else if (score >= 40) {
+                document.getElementById("resultText").textContent = "Not Bad!";
+            } else {
+                document.getElementById("resultText").textContent = "Keep Practicing!";
+            }
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any initialization code if needed
+        });
+    </script>
+</body>
+</html>
